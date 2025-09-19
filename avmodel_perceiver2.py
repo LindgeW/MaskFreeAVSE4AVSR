@@ -558,10 +558,13 @@ class ConformerBlock(nn.Module):
 		# only for modality tokens
         conv_output = self.conv(modality_out) + modality_out   # (B, L, D)
 
-        final_modality_out = 0.5 * self.ffn2(conv_output) + conv_output
-        final_bottleneck_out = 0.5 * self.ffn2(bottleneck_out) + bottleneck_out
-
-        return self.final_layer_norm(final_modality_out), self.final_layer_norm(final_bottleneck_out)
+        #final_modality_out = 0.5 * self.ffn2(conv_output) + conv_output
+        #final_bottleneck_out = 0.5 * self.ffn2(bottleneck_out) + bottleneck_out
+        #return self.final_layer_norm(final_modality_out), self.final_layer_norm(final_bottleneck_out)
+		combined_output = torch.cat([conv_output, bottleneck_out], dim=1)
+		combined_output = 0.5 * self.ffn2(combined_output) + combined_output
+		final_output = self.final_layer_norm(combined_output)
+		return final_output[:, :-self.num_bottleneck_tokens], final_output[:, -self.num_bottleneck_tokens:]
 
 
 class ConformerMBT(nn.Module):
@@ -825,7 +828,7 @@ class CTCLipModel(nn.Module):
         #self.fc_a = nn.Linear(512, vocab_size - 1)  # including blank label, excluding bos
         #self.fc_v = nn.Linear(512, vocab_size - 1)  # including blank label, excluding bos
 
-        self.trans_dec = TransDecoder(vocab_size, 512, 3, 4)
+        self.trans_dec = TransDecoder(vocab_size, 512, 6, 4)
 
         # initialize
         #self._initialize_weights()
