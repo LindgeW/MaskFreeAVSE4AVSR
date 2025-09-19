@@ -686,7 +686,7 @@ class CMLRDataset(Dataset):
     #     #print(vid.shape, aud.shape, len(txt), flush=True)
     #     vid_len = min(len(vid), self.MAX_VID_LEN)
     #     aud_len = min(len(aud), self.MAX_AUD_LEN)
-    #     txt_len = min(len(txt), self.MAX_TXT_LEN) - 2  # excluding bos and eos
+    #     txt_len = min(len(txt), self.MAX_TXT_LEN) - 1  # excluding bos 
     #     vid = self.padding(vid, self.MAX_VID_LEN)
     #     aud = self.padding(aud, self.MAX_AUD_LEN)
     #     txt = self.padding(txt, self.MAX_TXT_LEN)
