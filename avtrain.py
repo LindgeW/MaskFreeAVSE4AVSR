@@ -119,7 +119,9 @@ def avtrain(train_set, val_set=None, lr=3e-4, epochs=50, batch_size=32, model_pa
     optimizer = optim.AdamW(model.parameters(), lr=lr, betas=(0.9, 0.98), eps=1e-9, weight_decay=1e-4)    
     # optimizer = optim.AdamW([*model.avsr.parameters(), *model.spk.parameters()], lr=3 * lr, betas=(0.9, 0.98), eps=1e-9, weight_decay=1e-6)
     num_iters = len(data_loader) * epochs // accumulate_steps
-    lr_scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=num_iters//10, num_training_steps=num_iters)
+    #warmup_steps = num_iters // 10
+    warmup_steps = int(5 / epochs * num_iters)
+    lr_scheduler = get_cosine_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=num_iters)
 
     best_wer, best_cer = 1., 1.
     for ep in range(1, 1 + epochs):
@@ -154,7 +156,7 @@ def avtrain(train_set, val_set=None, lr=3e-4, epochs=50, batch_size=32, model_pa
             loss = loss / accumulate_steps
             loss.backward()
             if (i+1) % accumulate_steps == 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                #torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
                 optimizer.zero_grad()
                 lr_scheduler.step()
@@ -360,12 +362,12 @@ def evaluate(model_path, dataset, batch_size=32):
         #aud_lens = batch_data['aud_lens'].to(DEVICE)
         aud_lens = batch_data['clean_aud_lens'].to(DEVICE)
         #output = model.greedy_decode(vid_inp, input_lens)
-        output = model.beam_decode(vid_inp, aud_inp, vid_lens, aud_lens, bos_id=BOS_ID, eos_id=EOS_ID, max_dec_len=150)
+        output = model.beam_decode(vid_inp, aud_inp, vid_lens, aud_lens, bos_id=BOS_ID, eos_id=EOS_ID, max_dec_len=300)
         for out, tgt in zip(output, tgt_txt):
             ## CER
             #preds.append(''.join([dataset.vocab[i] for i in torch.unique_consecutive(out).tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]))
-            preds.append(''.join([dataset.vocab[i] for i in out.tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]))
-            refs.append(''.join([dataset.vocab[i] for i in tgt.tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]))
+            preds.append(''.join([dataset.vocab[i] for i in out.tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]).strip())
+            refs.append(''.join([dataset.vocab[i] for i in tgt.tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]).strip())
             ## WER
             #preds.append(' '.join([dataset.vocab[i] for i in torch.unique_consecutive(out).tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]))
             #preds.append(' '.join([dataset.vocab[i] for i in out.tolist() if i not in [PAD_ID, BOS_ID, EOS_ID]]))
@@ -445,8 +447,8 @@ if __name__ == '__main__':
         data_root = r'../LipData/Full-LRS3/LRS3'
         train_set = LRS3Dataset(data_root, r'../LipData/Full-LRS3/LRS3/fulltrain.csv', phase='train', setting='unseen')
         val_set = LRS3Dataset(data_root, r'../LipData/Full-LRS3/LRS3/test.csv', phase='test', setting='unseen')
-        avtrain(train_set, val_set, lr=4e-4, epochs=50, batch_size=8, model_path=None)
-        #cl_avtrain(lr=4e-4, epochs=60, batch_size=16, model_path=None)
+        avtrain(train_set, val_set, lr=1e-3, epochs=70, batch_size=10, model_path=None)
+        #cl_avtrain(lr=4e-4, epochs=50, batch_size=16, model_path=None)
         
         ## 测试
         #test_set = LRS3Dataset(data_root, r'../LipData/LRS3/test_id.txt', phase='test', setting='unseen')
