@@ -1,0 +1,10 @@
+checkpoints/avsr_unseen_lrs3/iter_41.pt
+checkpoints/avsr_unseen_lrs3/iter_42.pt
+checkpoints/avsr_unseen_lrs3/iter_43.pt
+checkpoints/avsr_unseen_lrs3/iter_44.pt
+checkpoints/avsr_unseen_lrs3/iter_45.pt
+checkpoints/avsr_unseen_lrs3/iter_46.pt
+checkpoints/avsr_unseen_lrs3/iter_47.pt
+checkpoints/avsr_unseen_lrs3/iter_48.pt
+checkpoints/avsr_unseen_lrs3/iter_49.pt
+checkpoints/avsr_unseen_lrs3/iter_50.pt
