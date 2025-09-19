@@ -348,7 +348,7 @@ class NoiseDataset(object):
             s0 = np.random.randint(0, len(target_noise) - seg_len)
             target_noise[s0: s0 + seg_len] = 0.
         
-        signal = aud_time_masking(signal, 0.2, p)   # 0.1 - 0.25
+        #signal = aud_time_masking(signal, 0.2, p)   # 0.1 - 0.25
 
         corrupted_signal = signal + target_noise
         return normalize(corrupted_signal)
@@ -520,7 +520,7 @@ class GRIDDataset(Dataset):
         
         vid_len = min(len(vid), self.max_vid_len)
         aud_len = min(len(aud), self.max_aud_len)
-        txt_len = min(len(txt), self.max_txt_len) - 2  # excluding bos and eos
+        txt_len = min(len(txt), self.max_txt_len) - 1  # excluding bos 
         vid = self.padding(vid, self.max_vid_len)
         aud = self.padding(aud, self.max_aud_len)
         clean_aud = self.padding(clean_aud, self.max_aud_len)
@@ -740,7 +740,7 @@ class CMLRDataset(Dataset):
                 pad_vid, ret_lens = pad_seqs3([s[data_type] for s in batch if s[data_type] is not None], max_len)
                 padded_batch[data_type] = pad_vid
                 if data_type == 'txt':
-                    padded_batch[data_type+'_lens'] = torch.tensor(ret_lens) - 2  # excluding bos and eos
+                    padded_batch[data_type+'_lens'] = torch.tensor(ret_lens) - 1  # excluding bos 
                 else:
                     padded_batch[data_type+'_lens'] = torch.tensor(ret_lens)
         return padded_batch
@@ -872,9 +872,10 @@ class LRS3Dataset(Dataset):   # 说话人数量多
 
     def load_txt(self, fn):
         with open(fn, 'r', encoding='utf-8') as f:
-            txt = f.readline().strip()   # 读第一行
-        txt = txt.replace("Text:", "").replace("{LG}", "").replace("{NS}", "").strip().lower()
-        #return np.asarray([self.vocab.index(w) for w in txt])
+            txt = f.readline().strip()[7:]   # 读第一行
+		txt = txt.replace("{LG}", "").replace("{NS}", "").lower().strip()
+        #txt = txt.replace("Text:", "").replace("{LG}", "").replace("{NS}", "").strip().lower()
+		#return np.asarray([self.vocab.index(w) for w in txt])
         # return np.asarray([self.vocab.index(BOS)] + [self.vocab.index(w) for w in txt] + [self.vocab.index(EOS)])
         return np.asarray(list(map(self.vocab.index, [BOS]+list(txt)+[EOS])))
 
@@ -986,7 +987,7 @@ class LRS3Dataset(Dataset):   # 说话人数量多
                 pad_vid, ret_lens = pad_seqs3([s[data_type] for s in batch if s[data_type] is not None], max_len)
                 padded_batch[data_type] = pad_vid
                 if data_type == 'txt':
-                    padded_batch[data_type+'_lens'] = torch.tensor(ret_lens) - 2  # excluding bos and eos
+                    padded_batch[data_type+'_lens'] = torch.tensor(ret_lens) - 1  # excluding bos 
                 else:
                     padded_batch[data_type+'_lens'] = torch.tensor(ret_lens)
         return padded_batch
